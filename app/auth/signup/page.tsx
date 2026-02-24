@@ -23,21 +23,16 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Sign up failed');
-        return;
-      }
-
-      // Store token in localStorage for client-side access
-      localStorage.setItem('authToken', data.data.token);
+      // Demo mode - simulate signup
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Store demo data in localStorage
+      localStorage.setItem('authToken', 'demo-token-' + Date.now());
+      localStorage.setItem('user', JSON.stringify({
+        id: 'user-' + Date.now(),
+        email,
+        name,
+      }));
       
       // Redirect to dashboard
       router.push('/dashboard');
@@ -64,6 +59,12 @@ export default function SignUpPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
+            <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-900">
+              <AlertDescription className="text-sm text-foreground">
+                Demo Mode: Create an account to explore FinSentinel
+              </AlertDescription>
+            </Alert>
 
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium">
