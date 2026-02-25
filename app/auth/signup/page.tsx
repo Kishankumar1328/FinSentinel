@@ -1,16 +1,51 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, ArrowRight, Loader2, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import {
+  Eye, EyeOff, ArrowRight, Loader2, CheckCircle2,
+  TrendingUp, Sparkles, Brain, Shield,
+} from 'lucide-react';
 
 const FEATURES = [
-  'AI-powered spending insights',
-  'Smart budget alerts',
-  'Goal tracking & projections',
-  'Beautiful financial reports',
+  { icon: Brain, text: 'AI-powered spending insights & anomaly detection' },
+  { icon: Shield, text: 'Bank-grade encryption — your data stays private' },
+  { icon: Sparkles, text: 'Smart budget alerts & financial health score' },
+  { icon: TrendingUp, text: 'Investment & tax optimizer in one dashboard' },
 ];
+
+const TESTIMONIALS = [
+  { name: 'Sarah K.', role: 'Software Engineer', text: 'FinSentinel helped me save $400/mo. I finally understand where my money goes.', avatar: 'S' },
+  { name: 'Marcus T.', role: 'Freelancer', text: 'The tax optimizer alone paid for my subscription 20x over. Absolute game changer.', avatar: 'M' },
+  { name: 'Priya R.', role: 'Product Manager', text: 'Love the voice entry. I log expenses in 2 seconds while commuting. Brilliant.', avatar: 'P' },
+];
+
+/* ── Animated grid overlay ─────────────── */
+function GridOverlay() {
+  return (
+    <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" aria-hidden>
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.8" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+    </svg>
+  );
+}
+
+/* ── Floating metric cards ─────────────── */
+function FloatingCard({ style, children }: { style?: React.CSSProperties; children: React.ReactNode }) {
+  return (
+    <div
+      className="absolute glass rounded-2xl px-4 py-3 border border-white/10 shadow-2xl"
+      style={style}
+    >
+      {children}
+    </div>
+  );
+}
 
 export default function SignUpPage() {
   const [name, setName] = useState('');
@@ -19,33 +54,28 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [testimonialIdx, setTestimonialIdx] = useState(0);
   const router = useRouter();
+
+  useEffect(() => {
+    const t = setInterval(() => setTestimonialIdx(i => (i + 1) % TESTIMONIALS.length), 4000);
+    return () => clearInterval(t);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name }),
       });
-
       const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to create account');
-      }
-
+      if (!response.ok) throw new Error(result.error || 'Failed to create account');
       localStorage.setItem('authToken', result.data.token);
-      localStorage.setItem('user', JSON.stringify({
-        id: result.data.userId,
-        email: result.data.email,
-        name: result.data.name,
-      }));
-
+      localStorage.setItem('user', JSON.stringify({ id: result.data.userId, email: result.data.email, name: result.data.name }));
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'An error occurred. Please try again.');
@@ -57,149 +87,203 @@ export default function SignUpPage() {
   const pwStrength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : 3;
   const pwColors = ['', 'bg-rose-500', 'bg-amber-500', 'bg-emerald-500'];
   const pwLabels = ['', 'Weak', 'Good', 'Strong'];
+  const pwGlows = ['', 'shadow-rose-500/30', 'shadow-amber-500/30', 'shadow-emerald-500/30'];
+
+  const t = TESTIMONIALS[testimonialIdx];
 
   return (
-    <div className="min-h-screen flex items-stretch overflow-hidden">
+    <div className="min-h-screen flex overflow-hidden bg-background">
+      {/* Aurora */}
+      <div className="aurora-bg"><div className="aurora-orb aurora-orb-1" /><div className="aurora-orb aurora-orb-2" /></div>
 
-      {/* Left — decorative panel */}
-      <div className="hidden lg:flex flex-col justify-between w-5/12 bg-gradient-to-br from-slate-900 via-violet-950/40 to-slate-900 p-14 relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-violet-500/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 -left-16 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+      {/* ── Left Decorative Panel ─────────────────────── */}
+      <div className="hidden lg:flex flex-col w-5/12 relative overflow-hidden border-r border-white/5">
+        <GridOverlay />
 
-        {/* Logo */}
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black text-lg shadow-lg shadow-primary/30">
-            FS
+        {/* Deep gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/60 via-background to-violet-950/40" />
+
+        {/* Orb accent */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-20"
+          style={{ background: 'radial-gradient(circle, oklch(0.66 0.24 268) 0%, transparent 70%)' }} />
+
+        {/* Floating metric cards */}
+        <FloatingCard style={{ top: '18%', left: '8%', animation: 'float-orb 6s ease-in-out infinite' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <TrendingUp className="h-4 w-4 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-[10px] text-white/40 uppercase font-bold">Portfolio</p>
+              <p className="text-sm font-extrabold text-emerald-400">+14.8% YTD</p>
+            </div>
           </div>
-          <span className="font-extrabold text-xl text-white">FinSentinel</span>
-        </div>
+        </FloatingCard>
 
-        {/* Content */}
-        <div className="relative z-10 space-y-8">
-          <div className="space-y-4">
-            <h2 className="text-4xl font-black text-white leading-tight">
-              Your financial journey
+        <FloatingCard style={{ top: '25%', right: '6%', animation: 'float-orb 8s ease-in-out 2s infinite' }}>
+          <div className="flex items-center gap-2">
+            <Brain className="h-4 w-4 text-violet-400" />
+            <p className="text-xs font-semibold text-white/70">AI insight ready</p>
+          </div>
+        </FloatingCard>
+
+        <FloatingCard style={{ bottom: '32%', left: '6%', animation: 'float-orb 7s ease-in-out 4s infinite' }}>
+          <div>
+            <p className="text-[9px] uppercase text-white/30 font-bold mb-0.5">This month saved</p>
+            <p className="text-xl font-black gradient-text-green">$1,240</p>
+          </div>
+        </FloatingCard>
+
+        {/* Main content */}
+        <div className="relative z-10 flex flex-col h-full p-12">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3 mb-auto">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/40">
+              <TrendingUp className="h-5 w-5 text-white" />
+            </div>
+            <span className="font-extrabold text-xl text-white">FinSentinel</span>
+          </Link>
+
+          {/* Hero text */}
+          <div className="space-y-6 my-auto">
+            <h2 className="text-5xl font-black text-white leading-tight">
+              Build wealth
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-primary">
-                starts here.
-              </span>
+              <span className="gradient-text-primary">intelligently.</span>
             </h2>
-            <p className="text-slate-400 leading-relaxed max-w-xs">
-              Join thousands of users building wealth with AI-powered financial intelligence.
+            <p className="text-white/45 leading-relaxed max-w-xs">
+              Join 12,000+ people who have transformed their finances with AI-powered guidance.
             </p>
+
+            {/* Features */}
+            <div className="space-y-3">
+              {FEATURES.map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-lg bg-indigo-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Icon className="h-3.5 w-3.5 text-indigo-400" />
+                  </div>
+                  <p className="text-sm text-white/50 leading-snug">{text}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Feature list */}
-          <div className="space-y-3">
-            {FEATURES.map(f => (
-              <div key={f} className="flex items-center gap-3">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
-                <span className="text-sm text-slate-300">{f}</span>
+          {/* Rotating Testimonial */}
+          <div key={testimonialIdx} className="glass rounded-2xl p-5 border border-white/8 fade-up">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
+                {t.avatar}
               </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{t.name}</p>
+                <p className="text-xs text-white/35">{t.role}</p>
+              </div>
+              <div className="ml-auto flex gap-0.5">
+                {Array(5).fill(0).map((_, i) => (
+                  <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ background: `oklch(0.75 0.22 ${50 + i * 10})` }} />
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-white/50 leading-relaxed italic">"{t.text}"</p>
+          </div>
+
+          {/* Dots */}
+          <div className="flex justify-center gap-1.5 mt-4">
+            {TESTIMONIALS.map((_, i) => (
+              <button key={i} onClick={() => setTestimonialIdx(i)}
+                className={`h-1.5 rounded-full transition-all ${i === testimonialIdx ? 'w-6 bg-indigo-400' : 'w-1.5 bg-white/20'}`} />
             ))}
           </div>
-        </div>
 
-        <p className="relative z-10 text-xs text-slate-600">© 2026 FinSentinel · All rights reserved</p>
+          <p className="relative z-10 text-xs text-white/20 mt-6">© 2026 FinSentinel · All rights reserved</p>
+        </div>
       </div>
 
-      {/* Right — form panel */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-md space-y-7">
+      {/* ── Right Form Panel ──────────────────────────── */}
+      <div className="flex-1 flex items-center justify-center p-8 relative z-10">
+        <div className="w-full max-w-md space-y-7 fade-up">
 
           {/* Mobile logo */}
-          <div className="flex items-center gap-3 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black shadow-md shadow-primary/30">
-              FS
+          <Link href="/" className="flex items-center gap-3 lg:hidden">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+              <TrendingUp className="h-4 w-4 text-white" />
             </div>
-            <span className="font-extrabold text-lg">FinSentinel</span>
-          </div>
+            <span className="font-extrabold text-lg text-white">FinSentinel</span>
+          </Link>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl font-extrabold tracking-tight">Create your account</h1>
-            <p className="text-sm text-muted-foreground">Free forever · No credit card required</p>
+          {/* Heading */}
+          <div>
+            <h1 className="text-4xl font-black text-white tracking-tight leading-tight">Create account</h1>
+            <p className="text-sm text-white/40 mt-2">Free forever · No credit card · Launch in 30 seconds</p>
           </div>
 
           {/* Demo banner */}
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
-            <ShieldCheck className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3.5 p-4 rounded-2xl glass border border-indigo-500/20">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+              <Shield className="h-4 w-4 text-indigo-400" />
+            </div>
             <div>
-              <p className="text-sm font-semibold text-primary">Demo Mode</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Create any account to explore FinSentinel — your data stays local.</p>
+              <p className="text-sm font-bold text-indigo-300">Demo Mode Available</p>
+              <p className="text-xs text-white/40 mt-0.5 leading-relaxed">
+                Create any account to explore — your data is stored locally and never shared.
+              </p>
             </div>
           </div>
 
           {/* Error */}
           {error && (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 text-sm font-medium">
-              <span className="text-base">⚠️</span> {error}
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm font-medium">
+              <span className="text-base flex-shrink-0">⚠️</span>
+              {error}
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-semibold">Full name</label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Full Name</label>
               <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="John Doe"
-                required
-                disabled={loading}
-                className="w-full h-12 px-4 rounded-xl border bg-muted/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 transition"
+                id="name" type="text" value={name} onChange={e => setName(e.target.value)}
+                placeholder="John Doe" required disabled={loading}
+                className="input-glow w-full h-12 px-4 rounded-xl text-sm text-white placeholder-white/20 disabled:opacity-50"
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-semibold">Email address</label>
+            <div>
+              <label htmlFor="email" className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Email Address</label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                disabled={loading}
-                className="w-full h-12 px-4 rounded-xl border bg-muted/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 transition"
+                id="email" type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com" required disabled={loading}
+                className="input-glow w-full h-12 px-4 rounded-xl text-sm text-white placeholder-white/20 disabled:opacity-50"
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-semibold">Password</label>
+            <div>
+              <label htmlFor="password" className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Password</label>
               <div className="relative">
                 <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Min 8 characters"
-                  required
-                  minLength={8}
-                  disabled={loading}
-                  className="w-full h-12 px-4 pr-12 rounded-xl border bg-muted/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 transition"
+                  id="password" type={showPassword ? 'text' : 'password'}
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="Min 8 characters" required minLength={8} disabled={loading}
+                  className="input-glow w-full h-12 px-4 pr-12 rounded-xl text-sm text-white placeholder-white/20 disabled:opacity-50"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
-                >
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {/* Password strength */}
+
+              {/* Strength meter */}
               {password.length > 0 && (
-                <div className="space-y-1.5 pt-1">
+                <div className="mt-2.5 space-y-1.5">
                   <div className="flex gap-1.5">
                     {[1, 2, 3].map(level => (
-                      <div
-                        key={level}
-                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${pwStrength >= level ? pwColors[pwStrength] : 'bg-muted'}`}
+                      <div key={level}
+                        className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${pwStrength >= level ? `${pwColors[pwStrength]} shadow-sm ${pwGlows[pwStrength]}` : 'bg-white/10'}`}
                       />
                     ))}
                   </div>
-                  <p className={`text-xs font-semibold ${pwStrength === 1 ? 'text-rose-500' : pwStrength === 2 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                  <p className={`text-xs font-bold ${pwStrength === 1 ? 'text-rose-400' : pwStrength === 2 ? 'text-amber-400' : 'text-emerald-400'}`}>
                     {pwLabels[pwStrength]} password
                   </p>
                 </div>
@@ -207,23 +291,42 @@ export default function SignUpPage() {
             </div>
 
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-lg shadow-primary/25 hover:bg-primary/90 transition flex items-center justify-center gap-2 disabled:opacity-60"
+              type="submit" disabled={loading}
+              className="btn-neon w-full h-12 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2.5 disabled:opacity-60 group mt-2"
             >
               {loading
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating account…</>
-                : <><span>Create Account</span> <ArrowRight className="h-4 w-4" /></>
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating your account…</>
+                : <><span>Create Free Account</span><ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" /></>
               }
             </button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link href="/auth/signin" className="font-semibold text-primary hover:underline">
-              Sign in
-            </Link>
-          </p>
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/8" />
+            <span className="text-xs text-white/25">or sign in to existing account</span>
+            <div className="flex-1 h-px bg-white/8" />
+          </div>
+
+          <Link href="/auth/signin">
+            <button className="btn-glass w-full h-11 rounded-xl font-semibold text-sm text-white/65 hover:text-white flex items-center justify-center gap-2">
+              Sign In Instead
+            </button>
+          </Link>
+
+          {/* Trust signals */}
+          <div className="flex items-center justify-center gap-5 pt-2">
+            {[
+              { icon: Shield, label: 'SSL secured' },
+              { icon: CheckCircle2, label: 'No subscription' },
+              { icon: Sparkles, label: 'AI included' },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center gap-1.5 text-[11px] text-white/25">
+                <Icon className="h-3 w-3" />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

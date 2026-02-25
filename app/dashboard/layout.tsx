@@ -4,225 +4,280 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
-import { Button } from '@/components/ui/button';
 import {
-  LayoutDashboard,
-  TrendingUp,
-  Wallet,
-  Target,
-  Settings,
-  LogOut,
-  Menu,
-  LineChart,
-  Sparkles,
-  Zap,
-  Heart,
-  Mic,
-  BarChart3,
-  Users,
-  Receipt,
+  LayoutDashboard, TrendingUp, Wallet, Target, Settings, LogOut, Menu,
+  LineChart, Sparkles, Zap, Heart, Mic, BarChart3, Users, Receipt, X,
+  ChevronLeft, ChevronRight, Bell, Search,
 } from 'lucide-react';
+import { VoiceAssistant } from '@/components/voice-assistant';
 
-const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/expenses', label: 'Expenses', icon: TrendingUp },
-  { href: '/dashboard/income', label: 'Income', icon: Wallet },
-  { href: '/dashboard/budgets', label: 'Budgets', icon: Zap },
-  { href: '/dashboard/goals', label: 'Goals', icon: Target },
-  { href: '/dashboard/investments', label: 'Investments', icon: BarChart3 },
-  { href: '/dashboard/tax', label: 'Tax Optimizer', icon: Receipt },
-  { href: '/dashboard/family', label: 'Family Sharing', icon: Users },
-  { href: '/dashboard/future-impact', label: 'Future Impact', icon: LineChart },
-  { href: '/dashboard/social-impact', label: 'Social Impact', icon: Heart },
-  { href: '/dashboard/insights', label: 'AI Insights', icon: Sparkles },
-  { href: '/dashboard/voice-entry', label: 'Voice Entry', icon: Mic },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+const NAV_GROUPS = [
+  {
+    label: 'Overview',
+    items: [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: 'Money',
+    items: [
+      { href: '/dashboard/expenses', label: 'Expenses', icon: TrendingUp },
+      { href: '/dashboard/income', label: 'Income', icon: Wallet },
+      { href: '/dashboard/budgets', label: 'Budgets', icon: Zap },
+      { href: '/dashboard/goals', label: 'Goals', icon: Target },
+    ],
+  },
+  {
+    label: 'Wealth',
+    items: [
+      { href: '/dashboard/investments', label: 'Investments', icon: BarChart3 },
+      { href: '/dashboard/tax', label: 'Tax Optimizer', icon: Receipt },
+      { href: '/dashboard/family', label: 'Family Sharing', icon: Users },
+    ],
+  },
+  {
+    label: 'Insights',
+    items: [
+      { href: '/dashboard/insights', label: 'AI Insights', icon: Sparkles },
+      { href: '/dashboard/future-impact', label: 'Future Impact', icon: LineChart },
+      { href: '/dashboard/social-impact', label: 'Social Impact', icon: Heart },
+      { href: '/dashboard/voice-entry', label: 'Voice Entry', icon: Mic },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    ],
+  },
 ];
 
-import { VoiceAssistant } from '@/components/voice-assistant';
+const ALL_ITEMS = NAV_GROUPS.flatMap(g => g.items);
+
+function SidebarContent({
+  collapsed, pathname, user, handleLogout, onClose,
+}: {
+  collapsed: boolean; pathname: string; user: any; handleLogout: () => void; onClose?: () => void;
+}) {
+  const isActive = (href: string) =>
+    href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href);
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="flex items-center justify-between px-4 py-5 border-b border-white/6">
+        <Link href="/dashboard" className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <span className="text-white font-black text-sm">FS</span>
+          </div>
+          {!collapsed && (
+            <div className="min-w-0">
+              <p className="font-extrabold text-white text-sm truncate">FinSentinel</p>
+              <p className="text-[10px] text-white/35 font-medium">Finance Intelligence</p>
+            </div>
+          )}
+        </Link>
+        {onClose && (
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/8 text-white/40 hover:text-white/70 transition-colors">
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto px-2.5 py-4 space-y-5">
+        {NAV_GROUPS.map(group => (
+          <div key={group.label}>
+            {!collapsed && (
+              <p className="text-[10px] font-bold text-white/25 uppercase tracking-widest px-2.5 mb-1.5">{group.label}</p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map(item => {
+                const Icon = item.icon;
+                const active = isActive(item.href);
+                return (
+                  <Link key={item.href} href={item.href} onClick={onClose}>
+                    <div className={`
+                      sidebar-glow-item relative flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200
+                      ${active ? 'active' : ''}
+                      ${active
+                        ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/10 text-white shadow-lg'
+                        : 'text-white/45 hover:text-white/80 hover:bg-white/5'}
+                      ${collapsed ? 'justify-center px-2' : ''}
+                    `}>
+                      <Icon className={`h-4 w-4 flex-shrink-0 transition-colors ${active ? 'text-indigo-400' : ''}`} />
+                      {!collapsed && (
+                        <span className={`text-sm font-medium truncate ${active ? 'text-white font-semibold' : ''}`}>
+                          {item.label}
+                        </span>
+                      )}
+                      {active && !collapsed && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 beacon" />
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* User Footer */}
+      <div className="p-3 border-t border-white/6">
+        {!collapsed && user && (
+          <div className="flex items-center gap-3 px-2 py-2 mb-2 rounded-xl bg-white/4">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center font-bold text-xs text-white flex-shrink-0">
+              {user.name?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-white truncate">{user.name}</p>
+              <p className="text-[10px] text-white/35 truncate">{user.email}</p>
+            </div>
+          </div>
+        )}
+        <button
+          onClick={handleLogout}
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-sm font-medium ${collapsed ? 'justify-center' : ''}`}
+        >
+          <LogOut className="h-4 w-4 flex-shrink-0" />
+          {!collapsed && <span>Sign out</span>}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
-
-  const isActive = (href: string) =>
-    href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/signin');
-    }
+    if (!authLoading && !user) router.push('/auth/signin');
   }, [user, authLoading, router]);
 
-  const handleLogout = async () => {
-    await logout();
-  };
+  const currentPage = ALL_ITEMS.find(i =>
+    i.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(i.href)
+  );
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold">FinSentinel</h1>
-          <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="aurora-bg"><div className="aurora-orb aurora-orb-1" /><div className="aurora-orb aurora-orb-2" /></div>
+        <div className="flex flex-col items-center gap-5 relative z-10">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40">
+            <span className="text-white font-black text-xl">FS</span>
+          </div>
+          <div className="space-y-1 text-center">
+            <p className="font-extrabold text-white text-lg">FinSentinel</p>
+            <p className="text-sm text-white/40">Loading your dashboard…</p>
+          </div>
+          <div className="flex gap-1">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="w-2 h-2 rounded-full bg-indigo-500/60"
+                style={{ animation: `beacon 1.2s ease-in-out ${i * 0.2}s infinite` }} />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Desktop Sidebar */}
-      <aside
-        className={`${desktopSidebarOpen ? 'w-64' : 'w-20'
-          } bg-sidebar border-r border-sidebar-border transition-all duration-300 hidden md:flex flex-col z-40`}
-      >
-        <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-              FS
-            </div>
-            {desktopSidebarOpen && <span>FinSentinel</span>}
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-sidebar-foreground hover:bg-sidebar-accent"
-            onClick={() => setDesktopSidebarOpen(!desktopSidebarOpen)}
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-        </div>
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Aurora bg */}
+      <div className="aurora-bg"><div className="aurora-orb aurora-orb-1" /><div className="aurora-orb aurora-orb-2" /></div>
 
-        <nav className="flex-1 p-3 space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.href);
-            return (
-              <Link key={item.href} href={item.href}>
-                <div
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${active
-                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-semibold'
-                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                    } ${!desktopSidebarOpen ? 'justify-center' : ''}`}
-                >
-                  <Icon className="h-4 w-4 flex-shrink-0" />
-                  {desktopSidebarOpen && <span className="text-sm">{item.label}</span>}
-                </div>
-              </Link>
-            );
-          })}
-        </nav>
+      {/* ── Desktop Sidebar ─────────────────────── */}
+      <aside className={`
+        relative hidden md:flex flex-col flex-shrink-0 h-full z-40
+        transition-all duration-300 ease-in-out
+        ${collapsed ? 'w-[72px]' : 'w-64'}
+        border-r border-white/6
+        bg-black/30 backdrop-blur-2xl
+      `}>
+        <SidebarContent collapsed={collapsed} pathname={pathname} user={user} handleLogout={logout} />
 
-        <div className="p-4 border-t border-sidebar-border space-y-2">
-          <div className={`text-sm text-sidebar-foreground ${desktopSidebarOpen ? '' : 'hidden'}`}>
-            <p className="font-medium truncate">{user?.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-          </div>
-          <Button
-            variant="ghost"
-            className={`w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 ${!desktopSidebarOpen ? 'px-0 justify-center' : ''}`}
-            onClick={handleLogout}
-            size={desktopSidebarOpen ? 'default' : 'icon'}
-          >
-            <LogOut className="h-4 w-4" />
-            {desktopSidebarOpen && <span className="ml-2">Logout</span>}
-          </Button>
-        </div>
+        {/* Collapse toggle */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-indigo-500 border-2 border-background flex items-center justify-center shadow-lg shadow-indigo-500/40 hover:bg-indigo-400 transition-colors z-50"
+        >
+          {collapsed
+            ? <ChevronRight className="h-3 w-3 text-white" />
+            : <ChevronLeft className="h-3 w-3 text-white" />}
+        </button>
       </aside>
 
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        >
-          <div
-            className="w-64 h-full bg-sidebar border-r border-sidebar-border flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
-              <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-                  FS
-                </div>
-                <span>FinSentinel</span>
-              </Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-sidebar-foreground"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            </div>
-            <nav className="flex-1 p-4 space-y-2">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="ml-2">{item.label}</span>
-                    </Button>
-                  </Link>
-                );
-              })}
-            </nav>
-            <div className="p-4 border-t border-sidebar-border space-y-2">
-              <div className="text-sm text-sidebar-foreground">
-                <p className="font-medium">{user?.name}</p>
-                <p className="text-xs text-muted-foreground">{user?.email}</p>
-              </div>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="ml-2">Logout</span>
-              </Button>
-            </div>
+      {/* ── Mobile Drawer ─────────────────────────── */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div className="absolute left-0 top-0 h-full w-72 bg-background/95 border-r border-white/8 backdrop-blur-3xl overflow-y-auto">
+            <SidebarContent collapsed={false} pathname={pathname} user={user} handleLogout={logout} onClose={() => setMobileOpen(false)} />
           </div>
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile Header */}
-        <header className="md:hidden bg-sidebar border-b border-sidebar-border p-4 flex items-center justify-between z-30">
-          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-sidebar-foreground">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-              FS
+      {/* ── Main Area ─────────────────────────────── */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+
+        {/* Top Header */}
+        <header className="flex-shrink-0 px-5 md:px-8 py-4 border-b border-white/5 bg-black/15 backdrop-blur-xl flex items-center justify-between gap-4 z-30">
+          {/* Left */}
+          <div className="flex items-center gap-4 min-w-0">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="md:hidden p-2 rounded-xl hover:bg-white/8 text-white/50 hover:text-white transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="min-w-0">
+              <h1 className="font-bold text-white text-lg leading-tight truncate">
+                {currentPage?.label || 'Dashboard'}
+              </h1>
+              <p className="text-xs text-white/30 hidden sm:block">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </p>
             </div>
-            <span>FinSentinel</span>
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-sidebar-foreground"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
+          </div>
+
+          {/* Right */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Search */}
+            <div className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-xs text-white/30 w-52 cursor-pointer hover:bg-white/8 transition-colors">
+              <Search className="h-3.5 w-3.5" />
+              <span>Search anything…</span>
+              <span className="ml-auto font-mono bg-white/10 px-1.5 py-0.5 rounded text-[10px]">⌘K</span>
+            </div>
+
+            {/* Notifications */}
+            <button className="relative p-2.5 rounded-xl hover:bg-white/8 text-white/45 hover:text-white transition-colors">
+              <Bell className="h-4.5 w-4.5" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500 border-2 border-background" />
+            </button>
+
+            {/* Avatar */}
+            <button className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center font-bold text-sm text-white shadow-md shadow-violet-500/30 hover:shadow-lg hover:shadow-violet-500/40 transition-shadow">
+              {user.name?.[0]?.toUpperCase() || 'U'}
+            </button>
+          </div>
         </header>
 
-        {/* Content Area */}
-        <main className="flex-1 overflow-auto p-4 md:p-8">
-          {children}
+        {/* Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-5 md:p-8 max-w-screen-2xl mx-auto">
+            {children}
+          </div>
         </main>
-        <VoiceAssistant />
       </div>
+
+      <VoiceAssistant />
     </div>
   );
 }
