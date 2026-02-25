@@ -39,15 +39,25 @@ function Counter({ to, duration = 2000, prefix = '', suffix = '' }: { to: number
 
 /* ── Floating Particles ─────────────────────────── */
 function ParticleField() {
-  const particles = Array.from({ length: 30 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: 1 + Math.random() * 2,
-    dur: 15 + Math.random() * 25,
-    delay: Math.random() * 10,
-    opacity: 0.2 + Math.random() * 0.4,
-  }));
+  const [particles, setParticles] = useState<Array<{
+    id: number; x: number; y: number; size: number;
+    dur: number; delay: number; opacity: number;
+  }>>([]);
+
+  // Generate on client only — avoids SSR/hydration mismatch from Math.random()
+  useEffect(() => {
+    setParticles(
+      Array.from({ length: 30 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: 1 + Math.random() * 2,
+        dur: 15 + Math.random() * 25,
+        delay: Math.random() * 10,
+        opacity: 0.2 + Math.random() * 0.4,
+      }))
+    );
+  }, []);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0" aria-hidden>
@@ -89,7 +99,7 @@ function Ticker() {
           </div>
         ))}
       </div>
-      <style jsx>{`
+      <style>{`
         .ticker-scroll {
           animation: ticker 30s linear infinite;
           width: max-content;
@@ -213,7 +223,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-background relative overflow-x-hidden">
+    <main className="dark min-h-screen bg-background relative overflow-x-hidden">
 
       {/* Aurora Background */}
       <div className="aurora-bg">

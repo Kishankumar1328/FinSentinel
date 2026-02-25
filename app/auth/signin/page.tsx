@@ -43,7 +43,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-background">
+    <div className="dark min-h-screen flex overflow-hidden bg-background">
       {/* Aurora */}
       <div className="aurora-bg"><div className="aurora-orb aurora-orb-1" /><div className="aurora-orb aurora-orb-2" /></div>
 
