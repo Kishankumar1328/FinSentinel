@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const db = getDb();
 
     // Check if user already exists
-    const existingUser = await db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    const existingUser = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
     if (existingUser) {
       return NextResponse.json(
         { success: false, error: 'Email already registered' },

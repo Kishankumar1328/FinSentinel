@@ -7,7 +7,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     await initializeDbAsync();
     const { id } = await params;
-    const user = await getCurrentUser(request);
+    const user = getCurrentUser(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const db = getDb();
-    const goal = await db.prepare('SELECT * FROM goals WHERE id = ? AND user_id = ?').get(id, user.id);
+    const goal = db.prepare('SELECT * FROM goals WHERE id = ? AND user_id = ?').get(id, user.id);
 
     if (!goal) {
       return NextResponse.json(
@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     await initializeDbAsync();
     const { id } = await params;
-    const user = await getCurrentUser(request);
+    const user = getCurrentUser(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const db = getDb();
-    const existing = await db.prepare('SELECT * FROM goals WHERE id = ? AND user_id = ?').get(id, user.id);
+    const existing = db.prepare('SELECT * FROM goals WHERE id = ? AND user_id = ?').get(id, user.id);
 
     if (!existing) {
       return NextResponse.json(
@@ -115,7 +115,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    const updated = await db.prepare('SELECT * FROM goals WHERE id = ?').get(id);
+    const updated = db.prepare('SELECT * FROM goals WHERE id = ?').get(id);
 
     return NextResponse.json({
       success: true,
@@ -135,7 +135,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     await initializeDbAsync();
     const { id } = await params;
-    const user = await getCurrentUser(request);
+    const user = getCurrentUser(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -144,7 +144,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 
     const db = getDb();
-    const existing = await db.prepare('SELECT * FROM goals WHERE id = ? AND user_id = ?').get(id, user.id);
+    const existing = db.prepare('SELECT * FROM goals WHERE id = ? AND user_id = ?').get(id, user.id);
 
     if (!existing) {
       return NextResponse.json(
@@ -153,7 +153,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       );
     }
 
-    await db.prepare('DELETE FROM goals WHERE id = ? AND user_id = ?').run(id, user.id);
+    db.prepare('DELETE FROM goals WHERE id = ? AND user_id = ?').run(id, user.id);
 
     return NextResponse.json({
       success: true,

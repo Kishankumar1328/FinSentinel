@@ -7,7 +7,7 @@ import { IncomeSchema } from '@/lib/schemas';
 export async function POST(request: NextRequest) {
   try {
     await initializeDbAsync();
-    const user = await getCurrentUser(request);
+    const user = getCurrentUser(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(incomeId, user.id, source, amount, description || null, date, recurring ? 1 : 0, recurrence_period || null, now, now);
 
-    const income = await db.prepare('SELECT * FROM income WHERE id = ?').get(incomeId);
+    const income = db.prepare('SELECT * FROM income WHERE id = ?').get(incomeId);
 
     return NextResponse.json(
       {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     await initializeDbAsync();
-    const user = await getCurrentUser(request);
+    const user = getCurrentUser(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
 
     // Get paginated results
     const offset = (page - 1) * limit;
-    const incomes = await db.prepare(`
+    const incomes = db.prepare(`
       SELECT * FROM income WHERE user_id = ?
       ORDER BY date DESC LIMIT ? OFFSET ?
     `).all(user.id, limit, offset);

@@ -16,7 +16,7 @@ const UpdateSchema = z.object({
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
     try {
         await initializeDbAsync();
-        const user = await getCurrentUser(request);
+        const user = getCurrentUser(request);
         if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
         const body = await request.json();
@@ -26,11 +26,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         }
 
         const db = getDb();
-        const existing = await db.prepare(`SELECT * FROM investments WHERE id = ? AND user_id = ?`).get(params.id, user.id) as any;
+        const existing = db.prepare(`SELECT * FROM investments WHERE id = ? AND user_id = ?`).get(params.id, user.id) as any;
         if (!existing) return NextResponse.json({ success: false, error: 'Investment not found' }, { status: 404 });
 
         const data = validation.data;
-        await db.prepare(`
+        db.prepare(`
       UPDATE investments SET
         ticker = ?, name = ?, shares = ?, buy_price = ?, current_price = ?, sector = ?, notes = ?, updated_at = ?
       WHERE id = ? AND user_id = ?
@@ -47,7 +47,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             user.id
         );
 
-        const updated = await db.prepare(`SELECT * FROM investments WHERE id = ?`).get(params.id);
+        const updated = db.prepare(`SELECT * FROM investments WHERE id = ?`).get(params.id);
         return NextResponse.json({ success: true, data: updated });
     } catch (error) {
         console.error('[FinSentinel] Update investment error:', error);
@@ -58,11 +58,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
     try {
         await initializeDbAsync();
-        const user = await getCurrentUser(request);
+        const user = getCurrentUser(request);
         if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
         const db = getDb();
-        const result = await db.prepare(`DELETE FROM investments WHERE id = ? AND user_id = ?`).run(params.id, user.id);
+        const result = db.prepare(`DELETE FROM investments WHERE id = ? AND user_id = ?`).run(params.id, user.id);
         if (!result.changes) return NextResponse.json({ success: false, error: 'Investment not found' }, { status: 404 });
 
         return NextResponse.json({ success: true, message: 'Investment deleted' });

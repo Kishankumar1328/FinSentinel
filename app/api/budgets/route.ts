@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { getCurrentUser } from '@/lib/auth';
-import { getDb } from '@/lib/db';
+import { getDb, initializeDbAsync } from '@/lib/db';
 import { BudgetSchema } from '@/lib/schemas';
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    await initializeDbAsync();
+    const user = getCurrentUser(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -29,15 +30,18 @@ export async function POST(request: NextRequest) {
     const now = Date.now();
     const budgetId = uuidv4();
 
-    await db.prepare(`
+    db.prepare(`
       INSERT INTO budgets (id, user_id, category, limit_amount, spent_amount, period, start_date, end_date, alert_threshold, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(budgetId, user.id, category, limit_amount, spent_amount || 0, period, start_date, end_date || null, alert_threshold, now, now);
 
-    const budget = await db.prepare('SELECT * FROM budgets WHERE id = ?').get(budgetId);
+    const budget = db.prepare('SELECT * FROM budgets WHERE id = ?').get(budgetId);
 
     return NextResponse.json(
-      { success: true, data: budget },
+      {
+        success: true,
+        data: budget,
+      },
       { status: 201 }
     );
   } catch (error) {
@@ -51,7 +55,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    await initializeDbAsync();
+    const user = getCurrentUser(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -60,29 +65,32 @@ export async function GET(request: NextRequest) {
     }
 
     const db = getDb();
-    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
-    const budgets = await db.prepare(`
+    // Fetch all budgets for this user
+    const budgets = db.prepare(`
       SELECT * FROM budgets WHERE user_id = ? ORDER BY created_at DESC
     `).all(user.id) as any[];
 
-    // Calculate LIVE spent_amount — use Promise.all since map is async
-    const budgetsWithLiveSpend = await Promise.all(
-      budgets.map(async (budget: any) => {
-        const spentResult = await db.prepare(`
-          SELECT COALESCE(SUM(amount), 0) as spent
-          FROM expenses
-          WHERE user_id = ? AND LOWER(category) = LOWER(?) AND date >= ?
-        `).get(user.id, budget.category, thirtyDaysAgo) as any;
+    // Calculate LIVE spent_amount from actual expenses (last 30 days, case-insensitive category match)
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
-        return {
-          ...budget,
-          spent_amount: spentResult?.spent || 0,
-        };
-      })
-    );
+    const budgetsWithLiveSpend = budgets.map((budget: any) => {
+      const spentResult = db.prepare(`
+        SELECT COALESCE(SUM(amount), 0) as spent
+        FROM expenses
+        WHERE user_id = ? AND LOWER(category) = LOWER(?) AND date >= ?
+      `).get(user.id, budget.category, thirtyDaysAgo) as any;
 
-    return NextResponse.json({ success: true, data: budgetsWithLiveSpend });
+      return {
+        ...budget,
+        spent_amount: spentResult?.spent || 0,
+      };
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: budgetsWithLiveSpend,
+    });
   } catch (error) {
     console.error('[v0] Get budgets error:', error);
     return NextResponse.json(
@@ -91,3 +99,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

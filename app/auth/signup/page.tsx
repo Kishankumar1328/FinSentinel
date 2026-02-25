@@ -27,7 +27,7 @@ function GridOverlay() {
     <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" aria-hidden>
       <defs>
         <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.8" />
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.8" className="text-slate-200" />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#grid)" />
@@ -39,7 +39,7 @@ function GridOverlay() {
 function FloatingCard({ style, children }: { style?: React.CSSProperties; children: React.ReactNode }) {
   return (
     <div
-      className="absolute glass rounded-2xl px-4 py-3 border border-white/10 shadow-2xl"
+      className="absolute glass rounded-2xl px-4 py-3 border border-foreground/10 shadow-2xl"
       style={style}
     >
       {children}
@@ -92,7 +92,7 @@ export default function SignUpPage() {
   const t = TESTIMONIALS[testimonialIdx];
 
   return (
-    <div className="dark min-h-screen flex overflow-hidden bg-background">
+    <div className="min-h-screen flex overflow-hidden bg-background">
       {/* Aurora */}
       <div className="aurora-bg"><div className="aurora-orb aurora-orb-1" /><div className="aurora-orb aurora-orb-2" /></div>
 
@@ -101,7 +101,7 @@ export default function SignUpPage() {
         <GridOverlay />
 
         {/* Deep gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/60 via-background to-violet-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-white to-violet-50/60" />
 
         {/* Orb accent */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-20"
@@ -110,26 +110,26 @@ export default function SignUpPage() {
         {/* Floating metric cards */}
         <FloatingCard style={{ top: '18%', left: '8%', animation: 'float-orb 6s ease-in-out infinite' }}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-              <TrendingUp className="h-4 w-4 text-emerald-400" />
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+              <TrendingUp className="h-4 w-4 text-emerald-600" />
             </div>
             <div>
-              <p className="text-[10px] text-white/40 uppercase font-bold">Portfolio</p>
-              <p className="text-sm font-extrabold text-emerald-400">+14.8% YTD</p>
+              <p className="text-[10px] text-foreground/40 uppercase font-bold">Portfolio</p>
+              <p className="text-sm font-extrabold text-emerald-500">+14.8% YTD</p>
             </div>
           </div>
         </FloatingCard>
 
         <FloatingCard style={{ top: '25%', right: '6%', animation: 'float-orb 8s ease-in-out 2s infinite' }}>
           <div className="flex items-center gap-2">
-            <Brain className="h-4 w-4 text-violet-400" />
-            <p className="text-xs font-semibold text-white/70">AI insight ready</p>
+            <Brain className="h-4 w-4 text-violet-500" />
+            <p className="text-xs font-semibold text-foreground/70">AI insight ready</p>
           </div>
         </FloatingCard>
 
         <FloatingCard style={{ bottom: '32%', left: '6%', animation: 'float-orb 7s ease-in-out 4s infinite' }}>
           <div>
-            <p className="text-[9px] uppercase text-white/30 font-bold mb-0.5">This month saved</p>
+            <p className="text-[9px] uppercase text-foreground/30 font-bold mb-0.5">This month saved</p>
             <p className="text-xl font-black gradient-text-green">$1,240</p>
           </div>
         </FloatingCard>
@@ -141,17 +141,17 @@ export default function SignUpPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/40">
               <TrendingUp className="h-5 w-5 text-white" />
             </div>
-            <span className="font-extrabold text-xl text-white">FinSentinel</span>
+            <span className="font-extrabold text-xl text-slate-950">FinSentinel</span>
           </Link>
 
           {/* Hero text */}
           <div className="space-y-6 my-auto">
-            <h2 className="text-5xl font-black text-white leading-tight">
+            <h2 className="text-5xl font-black text-slate-950 leading-tight">
               Build wealth
               <br />
               <span className="gradient-text-primary">intelligently.</span>
             </h2>
-            <p className="text-white/45 leading-relaxed max-w-xs">
+            <p className="text-slate-800 font-semibold leading-relaxed max-w-xs">
               Join 12,000+ people who have transformed their finances with AI-powered guidance.
             </p>
 
@@ -162,40 +162,40 @@ export default function SignUpPage() {
                   <div className="w-6 h-6 rounded-lg bg-indigo-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Icon className="h-3.5 w-3.5 text-indigo-400" />
                   </div>
-                  <p className="text-sm text-white/50 leading-snug">{text}</p>
+                  <p className="text-sm font-bold text-slate-900 leading-snug">{text}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Rotating Testimonial */}
-          <div key={testimonialIdx} className="glass rounded-2xl p-5 border border-white/8 fade-up">
+          <div key={testimonialIdx} className="glass rounded-2xl p-5 border border-slate-200 shadow-xl shadow-slate-200/50 fade-up">
             <div className="flex items-start gap-3 mb-3">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
                 {t.avatar}
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">{t.name}</p>
-                <p className="text-xs text-white/35">{t.role}</p>
+                <p className="text-sm font-bold text-slate-950">{t.name}</p>
+                <p className="text-xs text-slate-600 font-bold">{t.role}</p>
               </div>
               <div className="ml-auto flex gap-0.5">
                 {Array(5).fill(0).map((_, i) => (
-                  <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ background: `oklch(0.75 0.22 ${50 + i * 10})` }} />
+                  <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ background: `oklch(0.65 0.22 ${50 + i * 10})` }} />
                 ))}
               </div>
             </div>
-            <p className="text-xs text-white/50 leading-relaxed italic">"{t.text}"</p>
+            <p className="text-xs text-slate-800 leading-relaxed font-bold italic">"{t.text}"</p>
           </div>
 
           {/* Dots */}
           <div className="flex justify-center gap-1.5 mt-4">
             {TESTIMONIALS.map((_, i) => (
               <button key={i} onClick={() => setTestimonialIdx(i)}
-                className={`h-1.5 rounded-full transition-all ${i === testimonialIdx ? 'w-6 bg-indigo-400' : 'w-1.5 bg-white/20'}`} />
+                className={`h-1.5 rounded-full transition-all ${i === testimonialIdx ? 'w-6 bg-indigo-500' : 'w-1.5 bg-slate-200'}`} />
             ))}
           </div>
 
-          <p className="relative z-10 text-xs text-white/20 mt-6">© 2026 FinSentinel · All rights reserved</p>
+          <p className="relative z-10 text-xs text-slate-400 mt-6">© 2026 FinSentinel · All rights reserved</p>
         </div>
       </div>
 
@@ -206,15 +206,15 @@ export default function SignUpPage() {
           {/* Mobile logo */}
           <Link href="/" className="flex items-center gap-3 lg:hidden">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <TrendingUp className="h-4 w-4 text-white" />
+              <TrendingUp className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-extrabold text-lg text-white">FinSentinel</span>
+            <span className="font-extrabold text-lg text-foreground">FinSentinel</span>
           </Link>
 
           {/* Heading */}
           <div>
-            <h1 className="text-4xl font-black text-white tracking-tight leading-tight">Create account</h1>
-            <p className="text-sm text-white/40 mt-2">Free forever · No credit card · Launch in 30 seconds</p>
+            <h1 className="text-4xl font-black text-slate-950 tracking-tight leading-tight">Create account</h1>
+            <p className="text-sm font-semibold text-slate-600 mt-2">Free forever · No credit card · Launch in 30 seconds</p>
           </div>
 
           {/* Demo banner */}
@@ -223,8 +223,8 @@ export default function SignUpPage() {
               <Shield className="h-4 w-4 text-indigo-400" />
             </div>
             <div>
-              <p className="text-sm font-bold text-indigo-300">Demo Mode Available</p>
-              <p className="text-xs text-white/40 mt-0.5 leading-relaxed">
+              <p className="text-sm font-bold text-indigo-600">Demo Mode Available</p>
+              <p className="text-xs text-slate-700 mt-1 leading-relaxed font-bold">
                 Create any account to explore — your data is stored locally and never shared.
               </p>
             </div>
@@ -241,34 +241,34 @@ export default function SignUpPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Full Name</label>
+              <label htmlFor="name" className="block text-xs font-bold text-black uppercase tracking-wider mb-2">Full Name</label>
               <input
                 id="name" type="text" value={name} onChange={e => setName(e.target.value)}
                 placeholder="John Doe" required disabled={loading}
-                className="input-glow w-full h-12 px-4 rounded-xl text-sm text-white placeholder-white/20 disabled:opacity-50"
+                className="input-glow w-full h-12 px-4 rounded-xl text-sm font-semibold text-black placeholder-slate-400 disabled:opacity-50"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Email Address</label>
+              <label htmlFor="email" className="block text-xs font-bold text-black uppercase tracking-wider mb-2">Email Address</label>
               <input
                 id="email" type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com" required disabled={loading}
-                className="input-glow w-full h-12 px-4 rounded-xl text-sm text-white placeholder-white/20 disabled:opacity-50"
+                className="input-glow w-full h-12 px-4 rounded-xl text-sm font-semibold text-black placeholder-slate-400 disabled:opacity-50"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Password</label>
+              <label htmlFor="password" className="block text-xs font-bold text-black uppercase tracking-wider mb-2">Password</label>
               <div className="relative">
                 <input
                   id="password" type={showPassword ? 'text' : 'password'}
                   value={password} onChange={e => setPassword(e.target.value)}
                   placeholder="Min 8 characters" required minLength={8} disabled={loading}
-                  className="input-glow w-full h-12 px-4 pr-12 rounded-xl text-sm text-white placeholder-white/20 disabled:opacity-50"
+                  className="input-glow w-full h-12 px-4 pr-12 rounded-xl text-sm font-semibold text-black placeholder-slate-400 disabled:opacity-50"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -279,7 +279,7 @@ export default function SignUpPage() {
                   <div className="flex gap-1.5">
                     {[1, 2, 3].map(level => (
                       <div key={level}
-                        className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${pwStrength >= level ? `${pwColors[pwStrength]} shadow-sm ${pwGlows[pwStrength]}` : 'bg-white/10'}`}
+                        className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${pwStrength >= level ? `${pwColors[pwStrength]} shadow-sm ${pwGlows[pwStrength]}` : 'bg-foreground/10'}`}
                       />
                     ))}
                   </div>
@@ -292,7 +292,7 @@ export default function SignUpPage() {
 
             <button
               type="submit" disabled={loading}
-              className="btn-neon w-full h-12 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2.5 disabled:opacity-60 group mt-2"
+              className="btn-neon w-full h-12 rounded-xl font-bold text-sm text-primary-foreground flex items-center justify-center gap-2.5 disabled:opacity-60 group mt-2"
             >
               {loading
                 ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating your account…</>
@@ -303,13 +303,13 @@ export default function SignUpPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-white/8" />
-            <span className="text-xs text-white/25">or sign in to existing account</span>
-            <div className="flex-1 h-px bg-white/8" />
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="text-xs font-bold text-slate-500 uppercase">or sign in to existing account</span>
+            <div className="flex-1 h-px bg-slate-200" />
           </div>
 
           <Link href="/auth/signin">
-            <button className="btn-glass w-full h-11 rounded-xl font-semibold text-sm text-white/65 hover:text-white flex items-center justify-center gap-2">
+            <button className="btn-glass w-full h-11 rounded-xl font-semibold text-sm text-foreground/80 hover:text-foreground flex items-center justify-center gap-2">
               Sign In Instead
             </button>
           </Link>
@@ -321,7 +321,7 @@ export default function SignUpPage() {
               { icon: CheckCircle2, label: 'No subscription' },
               { icon: Sparkles, label: 'AI included' },
             ].map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-1.5 text-[11px] text-white/25">
+              <div key={label} className="flex items-center gap-1.5 text-[11px] text-slate-400 font-bold">
                 <Icon className="h-3 w-3" />
                 <span>{label}</span>
               </div>

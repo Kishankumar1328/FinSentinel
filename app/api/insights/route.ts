@@ -13,7 +13,7 @@ interface Insight {
 
 export async function GET(request: NextRequest) {
   try {
-    const userProfile = await getCurrentUser(request);
+    const userProfile = getCurrentUser(request);
     if (!userProfile) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
@@ -27,36 +27,41 @@ export async function GET(request: NextRequest) {
     const insights: Insight[] = [];
 
     // Get current month expenses by category
-    const currentExpenses = await db
+    const currentExpenses = db
       .prepare(
-        `SELECT category, SUM(amount) as total, COUNT(*) as count
+        `
+        SELECT category, SUM(amount) as total, COUNT(*) as count
         FROM expenses
         WHERE user_id = ? AND date >= ?
         GROUP BY category
-        ORDER BY total DESC`
+        ORDER BY total DESC
+      `
       )
       .all(userId, monthAgo) as Array<{ category: string; total: number; count: number }>;
 
     // Get previous month expenses for trend analysis
-    const previousExpenses = await db
+    const previousExpenses = db
       .prepare(
-        `SELECT category, SUM(amount) as total
+        `
+        SELECT category, SUM(amount) as total
         FROM expenses
         WHERE user_id = ? AND date >= ? AND date < ?
-        GROUP BY category`
+        GROUP BY category
+      `
       )
-      .all(userId, twoMonthsAgo, monthAgo) as Array<{ category: string; total: number }>;
+      .all(userId, twoMonthsAgo, monthAgo) as Array<{
+        category: string;
+        total: number;
+      }>;
 
     const totalCurrentSpending = currentExpenses.reduce((sum, e) => sum + e.total, 0);
-    const avgTransactionAmount = currentExpenses.length > 0
-      ? totalCurrentSpending / currentExpenses.reduce((sum, e) => sum + e.count, 0)
-      : 0;
+    const avgTransactionAmount = currentExpenses.length > 0 ? totalCurrentSpending / currentExpenses.reduce((sum, e) => sum + e.count, 0) : 0;
 
     // Behavioral Detection - Emotional Spending
-    const emotionalExpenses = await db.prepare(`
-      SELECT category, amount, mood, description
-      FROM expenses
-      WHERE user_id = ? AND date >= ? AND (mood = 'stressed' OR mood = 'bored' OR mood = 'sad')
+    const emotionalExpenses = db.prepare(`
+        SELECT category, amount, mood, description
+        FROM expenses
+        WHERE user_id = ? AND date >= ? AND (mood = 'stressed' OR mood = 'bored' OR mood = 'sad')
     `).all(userId, monthAgo) as Array<{ category: string; amount: number; mood: string; description: string }>;
 
     if (emotionalExpenses.length > 0) {
@@ -71,11 +76,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Behavioral Detection - Anomaly Detection
-    const largeTransactions = await db.prepare(`
-      SELECT category, amount, description
-      FROM expenses
-      WHERE user_id = ? AND date >= ? AND amount > ?
+    // Behavioral Detection - Anomaly Detection (Statistical)
+    const largeTransactions = db.prepare(`
+       SELECT category, amount, description
+       FROM expenses
+       WHERE user_id = ? AND date >= ? AND amount > ?
     `).all(userId, monthAgo, avgTransactionAmount * 4) as Array<{ category: string; amount: number; description: string }>;
 
     if (largeTransactions.length > 0) {
@@ -87,15 +92,20 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Analyze spending trends
+    // Analyze spending patterns and trends
     for (const expense of currentExpenses) {
       const previousAmount = previousExpenses.find((e) => e.category === expense.category)?.total || 0;
       const change = previousAmount > 0 ? ((expense.total - previousAmount) / previousAmount) * 100 : 100;
-      let trend = 'stable';
+      let trend: string = 'stable';
       let severity: 'info' | 'warning' | 'success' = 'info';
 
-      if (change > 15) { trend = 'increasing'; severity = 'warning'; }
-      else if (change < -15) { trend = 'decreasing'; severity = 'success'; }
+      if (change > 15) {
+        trend = 'increasing';
+        severity = 'warning';
+      } else if (change < -15) {
+        trend = 'decreasing';
+        severity = 'success';
+      }
 
       if (trend !== 'stable') {
         insights.push({
@@ -111,17 +121,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Weekend spending check
-    const allRecentExpenses = await db.prepare(`
-      SELECT amount, date FROM expenses WHERE user_id = ? AND date >= ?
-    `).all(userId, monthAgo) as Array<{ amount: number; date: number }>;
+    // Behavioral Detection - Weekend Spikes
+    const weekendExpenses = db.prepare(`
+      SELECT SUM(amount) as total
+      FROM expenses
+      WHERE user_id = ? AND date >= ? AND (strftime('%w', date/1000, 'unixepoch') = '0' OR strftime('%w', date/1000, 'unixepoch') = '6')
+    `).get(userId, monthAgo) as { total: number };
 
-    const weekendTotal = allRecentExpenses
-      .filter(e => { const d = new Date(e.date); return d.getDay() === 0 || d.getDay() === 6; })
-      .reduce((sum, e) => sum + e.amount, 0);
-    const weekdayTotal = totalCurrentSpending - weekendTotal;
-
-    if (weekendTotal > weekdayTotal * 0.8 && totalCurrentSpending > 0) {
+    const weekendTotal = weekendExpenses?.total || 0;
+    const weekdayExpenses = totalCurrentSpending - weekendTotal;
+    if (weekendTotal > weekdayExpenses * 0.8 && totalCurrentSpending > 0) {
       insights.push({
         type: 'spending_pattern',
         title: 'Weekend Spike Detected',
@@ -130,13 +139,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Subscription Creep
-    const potentialSubscriptions = await db.prepare(`
+    // Behavioral Detection - Subscription Creep
+    const potentialSubscriptions = db.prepare(`
       SELECT category, amount, COUNT(*) as frequency
       FROM expenses
       WHERE user_id = ? AND date >= ?
       GROUP BY category, amount
-      HAVING COUNT(*) >= 2
+      HAVING frequency >= 2
     `).all(userId, monthAgo) as Array<{ category: string; amount: number; frequency: number }>;
 
     if (potentialSubscriptions.length > 3) {
@@ -148,7 +157,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Top category
+    // Top spending category insight
     const topCategory = currentExpenses[0];
     if (topCategory) {
       const percentage = (topCategory.total / totalCurrentSpending) * 100;
@@ -162,13 +171,20 @@ export async function GET(request: NextRequest) {
     }
 
     // Budget warnings
-    const budgets = await db.prepare(`
-      SELECT id, category, limit_amount FROM budgets WHERE user_id = ?
-    `).all(userId) as Array<{ id: string; category: string; limit_amount: number }>;
+    const budgets = db
+      .prepare(
+        `
+        SELECT id, category, limit_amount
+        FROM budgets
+        WHERE user_id = ?
+      `
+      )
+      .all(userId) as Array<{ id: string; category: string; limit_amount: number }>;
 
     for (const budget of budgets) {
       const spent = currentExpenses.find((e) => e.category === budget.category)?.total || 0;
       const percentage = (spent / budget.limit_amount) * 100;
+
       if (percentage > 80) {
         insights.push({
           type: 'budget_warning',
@@ -184,23 +200,35 @@ export async function GET(request: NextRequest) {
     }
 
     // Goal progress
-    const goals = await db.prepare(`
-      SELECT id, title, target_amount, current_amount, deadline
-      FROM goals
-      WHERE user_id = ? AND current_amount < target_amount
-      ORDER BY deadline ASC
-      LIMIT 1
-    `).all(userId) as Array<{ id: string; title: string; target_amount: number; current_amount: number; deadline: number }>;
+    const goals = db
+      .prepare(
+        `
+        SELECT id, title, target_amount, current_amount, deadline
+        FROM goals
+        WHERE user_id = ? AND current_amount < target_amount
+        ORDER BY deadline ASC
+        LIMIT 1
+      `
+      )
+      .all(userId) as Array<{
+        id: string;
+        title: string;
+        target_amount: number;
+        current_amount: number;
+        deadline: number;
+      }>;
 
     if (goals.length > 0) {
       const goal = goals[0];
       const remaining = goal.target_amount - goal.current_amount;
       const daysLeft = Math.ceil((goal.deadline - now) / (1000 * 60 * 60 * 24));
+
       if (daysLeft > 0) {
+        const dailyRequired = remaining / daysLeft;
         insights.push({
           type: 'goal_progress',
           title: 'Goal Target Analysis',
-          description: `To reach your ${goal.title} goal in ${daysLeft} days, you need to set aside $${(remaining / daysLeft).toFixed(2)} per day.`,
+          description: `To reach your ${goal.title} goal in ${daysLeft} days, you need to set aside $${dailyRequired.toFixed(2)} per day.`,
           severity: 'info'
         });
       }

@@ -93,13 +93,14 @@ function Ticker() {
       <div className="flex gap-10 ticker-scroll">
         {[...TICKERS, ...TICKERS].map((t, i) => (
           <div key={i} className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-            <span className="text-xs font-bold text-white/70">{t.symbol}</span>
-            <span className="text-xs font-semibold text-white">${t.price}</span>
-            <span className={`text-[10px] font-bold ${t.up ? 'text-emerald-400' : 'text-red-400'}`}>{t.change}</span>
+            <span className="text-xs font-bold text-foreground/70">{t.symbol}</span>
+            <span className="text-xs font-semibold text-foreground">${t.price}</span>
+            <span className={`text-[10px] font-bold ${t.up ? 'text-emerald-500' : 'text-rose-500'}`}>{t.change}</span>
           </div>
         ))}
       </div>
-      <style>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .ticker-scroll {
           animation: ticker 30s linear infinite;
           width: max-content;
@@ -108,7 +109,19 @@ function Ticker() {
           from { transform: translateX(0); }
           to { transform: translateX(-50%); }
         }
-      `}</style>
+        .premium-glow {
+          text-shadow: 0 0 40px oklch(0.66 0.24 268 / 0.3);
+        }
+        .text-glow {
+          text-shadow: 0 0 20px oklch(0.66 0.24 268 / 0.1);
+        }
+        .hover-rise {
+          transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .hover-rise:hover {
+          transform: translateY(-8px);
+        }
+      ` }} />
     </div>
   );
 }
@@ -117,27 +130,26 @@ function Ticker() {
 function FeatureCard({ icon: Icon, title, desc, color, glow, delay }: any) {
   return (
     <div
-      className={`bento-card p-6 fade-up glass-hover ${delay}`}
-      style={{ boxShadow: `0 0 0 0 transparent` }}
+      className={`glass-card p-8 fade-up hover-rise ${delay} group`}
     >
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${color}`}
+      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 ${color}`}
         style={{ boxShadow: glow }}>
-        <Icon className="h-6 w-6" />
+        <Icon className="h-7 w-7" />
       </div>
-      <h3 className="font-semibold text-base text-white mb-2">{title}</h3>
-      <p className="text-sm text-white/50 leading-relaxed">{desc}</p>
+      <h3 className="font-bold text-xl text-foreground mb-3 tracking-tight">{title}</h3>
+      <p className="text-sm text-foreground/60 leading-relaxed group-hover:text-foreground/80 transition-colors">{desc}</p>
     </div>
   );
 }
 
 /* ── Stat Card ─────────────────────────────────── */
-function StatCard({ value, label, prefix, suffix }: any) {
+function StatCard({ to, label, prefix, suffix }: any) {
   return (
     <div className="text-center">
       <div className="text-4xl font-black gradient-text-primary mb-1">
-        <Counter to={value} prefix={prefix} suffix={suffix} />
+        <Counter to={to} prefix={prefix} suffix={suffix} />
       </div>
-      <p className="text-sm text-white/50">{label}</p>
+      <p className="text-sm font-medium text-foreground/70">{label}</p>
     </div>
   );
 }
@@ -152,7 +164,7 @@ function DashboardPreview() {
           <div className="w-6 h-6 rounded-lg bg-indigo-500/30 flex items-center justify-center">
             <BarChart3 className="h-3.5 w-3.5 text-indigo-400" />
           </div>
-          <span className="text-xs font-semibold text-white/70">Portfolio Overview</span>
+          <span className="text-xs font-semibold text-foreground/70">Portfolio Overview</span>
         </div>
         <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 beacon" />
@@ -168,8 +180,8 @@ function DashboardPreview() {
           { label: 'Saved', value: '28.4%', up: true },
         ].map(({ label, value, up }) => (
           <div key={label} className="glass-sm rounded-xl p-3">
-            <p className="text-[9px] text-white/40 uppercase font-bold mb-1">{label}</p>
-            <p className="text-sm font-extrabold text-white">{value}</p>
+            <p className="text-[9px] text-foreground/40 uppercase font-bold mb-1">{label}</p>
+            <p className="text-sm font-extrabold text-foreground">{value}</p>
             <p className={`text-[9px] font-bold mt-0.5 ${up ? 'text-emerald-400' : 'text-red-400'}`}>▲ 8.2%</p>
           </div>
         ))}
@@ -177,7 +189,7 @@ function DashboardPreview() {
 
       {/* Chart bars */}
       <div className="mb-4">
-        <p className="text-[9px] text-white/30 uppercase font-bold mb-2">Spending vs Income</p>
+        <p className="text-[9px] text-foreground/30 uppercase font-bold mb-2">Spending vs Income</p>
         <div className="flex items-end gap-1 h-20">
           {[65, 80, 45, 70, 90, 55, 85, 60, 75, 95, 50, 88].map((h, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
@@ -197,10 +209,10 @@ function DashboardPreview() {
         ].map(({ label, pct, color }) => (
           <div key={label}>
             <div className="flex justify-between mb-0.5">
-              <span className="text-[10px] text-white/50">{label}</span>
-              <span className="text-[10px] text-white/70 font-semibold">{pct}%</span>
+              <span className="text-[10px] text-foreground/50">{label}</span>
+              <span className="text-[10px] text-foreground/70 font-semibold">{pct}%</span>
             </div>
-            <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-1 bg-foreground/10 rounded-full overflow-hidden">
               <div className={`h-full ${color} rounded-full transition-all duration-1000`} style={{ width: `${pct}%` }} />
             </div>
           </div>
@@ -223,12 +235,11 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="dark min-h-screen bg-background relative overflow-x-hidden">
+    <main className="min-h-screen bg-background relative overflow-x-hidden">
 
-      {/* Aurora Background */}
       <div className="aurora-bg">
-        <div className="aurora-orb aurora-orb-1" />
-        <div className="aurora-orb aurora-orb-2" />
+        <div className="aurora-orb aurora-orb-1 opacity-60 bg-indigo-500" />
+        <div className="aurora-orb aurora-orb-2 opacity-60 bg-violet-500" />
       </div>
 
       {/* Radial cursor follow */}
@@ -249,14 +260,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 transition-shadow">
-              <TrendingUp className="h-4.5 w-4.5 text-white" />
+              <TrendingUp className="h-4.5 w-4.5 text-primary-foreground" />
             </div>
-            <span className="font-extrabold text-lg text-white tracking-tight">FinSentinel</span>
+            <span className="font-black text-xl text-foreground tracking-tighter">FinSentinel</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
             {['Features', 'Pricing', 'Blog', 'Docs'].map(item => (
-              <a key={item} href="#" className="text-sm text-white/55 hover:text-white transition-colors animated-underline">
+              <a key={item} href="#" className="text-sm font-semibold text-foreground/70 hover:text-foreground transition-colors animated-underline">
                 {item}
               </a>
             ))}
@@ -264,12 +275,12 @@ export default function Home() {
 
           <div className="flex items-center gap-3">
             <Link href="/auth/signin">
-              <button className="btn-glass px-4 py-2 rounded-xl text-sm font-semibold text-white/80 hover:text-white transition-all">
+              <button className="btn-glass px-4 py-2 rounded-xl text-sm font-semibold text-foreground hover:text-foreground/80 transition-all">
                 Sign In
               </button>
             </Link>
             <Link href="/auth/signup">
-              <button className="btn-neon px-5 py-2 rounded-xl text-sm font-bold text-white flex items-center gap-2">
+              <button className="btn-neon px-5 py-2 rounded-xl text-sm font-bold text-primary-foreground flex items-center gap-2">
                 Get Started <ArrowRight className="h-4 w-4" />
               </button>
             </Link>
@@ -290,27 +301,25 @@ export default function Home() {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 beacon" />
             </div>
 
-            <h1 className="text-6xl lg:text-7xl font-black leading-[0.95] tracking-tight text-white">
-              Your money,
+            <h1 className="text-6xl lg:text-8xl font-black leading-[0.9] tracking-tighter text-white premium-glow">
+              Build wealth,
               <br />
-              <span className="gradient-text-primary glow-text-primary">intelligently</span>
-              <br />
-              managed.
+              <span className="gradient-text-primary italic">intelligently.</span>
             </h1>
 
-            <p className="text-lg text-white/50 leading-relaxed max-w-lg">
-              FinSentinel combines AI insights, voice entry, investment tracking, and family budgeting into one stunning, unified financial experience.
+            <p className="text-xl text-white/70 leading-relaxed max-w-lg text-glow">
+              Join 12,000+ people who have transformed their finances with AI-powered guidance, smart insights, and seamless tracking.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/auth/signup">
-                <button className="btn-neon w-full sm:w-auto px-8 py-3.5 rounded-2xl text-base font-bold text-white flex items-center justify-center gap-2.5 group">
+                <button className="btn-neon w-full sm:w-auto px-10 py-4 rounded-2xl text-base font-bold text-primary-foreground flex items-center justify-center gap-2.5 group shadow-[0_0_30px_oklch(0.66_0.24_268_/_0.3)] hover:shadow-[0_0_50px_oklch(0.66_0.24_268_/_0.5)] transition-all duration-300">
                   <span>Start for Free</span>
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </Link>
               <Link href="/auth/signin">
-                <button className="btn-glass w-full sm:w-auto px-8 py-3.5 rounded-2xl text-base font-semibold text-white/75 flex items-center justify-center gap-2">
+                <button className="btn-glass w-full sm:w-auto px-8 py-3.5 rounded-2xl text-base font-semibold text-white/90 hover:text-white flex items-center justify-center gap-2">
                   <span>View Dashboard</span>
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -321,7 +330,7 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3">
                 {['A', 'B', 'C', 'D', 'E'].map((l, i) => (
-                  <div key={l} className="w-8 h-8 rounded-full border-2 border-background flex items-center justify-center text-xs font-bold text-white"
+                  <div key={l} className="w-8 h-8 rounded-full border-2 border-background flex items-center justify-center text-xs font-bold text-primary-foreground"
                     style={{ background: `oklch(${0.55 + i * 0.04} 0.22 ${200 + i * 30})` }}>
                     {l}
                   </div>
@@ -331,7 +340,7 @@ export default function Home() {
                 <div className="flex gap-0.5 mb-0.5">
                   {Array(5).fill(0).map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />)}
                 </div>
-                <p className="text-xs text-white/40">Trusted by <strong className="text-white/60">12,000+</strong> users</p>
+                <p className="text-xs font-bold text-foreground/40">Trusted by <strong className="text-foreground/70">12,000+</strong> users</p>
               </div>
             </div>
           </div>
@@ -462,7 +471,7 @@ export default function Home() {
             </div>
             <div className="flex items-center justify-center gap-6 pt-4">
               {[{ icon: Shield, label: 'Bank-grade security' }, { icon: Globe, label: 'Works everywhere' }, { icon: Lock, label: 'Privacy first' }].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-1.5 text-xs text-white/30">
+                <div key={label} className="flex items-center gap-1.5 text-xs font-bold text-foreground/30">
                   <Icon className="h-3.5 w-3.5" /> {label}
                 </div>
               ))}
@@ -476,14 +485,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-              <TrendingUp className="h-3.5 w-3.5 text-white" />
+              <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
-            <span className="font-extrabold text-white/70">FinSentinel</span>
+            <span className="font-extrabold text-foreground/80">FinSentinel</span>
           </div>
-          <p className="text-xs text-white/25">© 2026 FinSentinel. All rights reserved. Your intelligent financial guardian.</p>
+          <p className="text-xs font-bold text-foreground/30">© 2026 FinSentinel. All rights reserved. Your intelligent financial guardian.</p>
           <div className="flex gap-6">
             {['Privacy', 'Terms', 'Contact'].map(item => (
-              <a key={item} href="#" className="text-xs text-white/30 hover:text-white/60 transition-colors">{item}</a>
+              <a key={item} href="#" className="text-xs font-bold text-foreground/40 hover:text-foreground transition-colors">{item}</a>
             ))}
           </div>
         </div>
