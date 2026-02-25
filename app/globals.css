@@ -371,20 +371,29 @@
 
 /* ── Light theme overrides ───────────────────────────────────────────────────── */
 .light .glass {
-  background: oklch(1 0 0 / 0.85);
-  border-color: oklch(0.88 0.010 265 / 0.70);
-  box-shadow: 0 4px 24px oklch(0 0 0 / 0.07), inset 0 1px 0 oklch(1 0 0 / 0.90);
+  /* Solid opaque card — no backdrop-filter blur over bright content */
+  background: oklch(1 0 0 / 0.96);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid oklch(0.88 0.010 265);
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.06), 0 4px 16px oklch(0 0 0 / 0.05);
 }
 
 .light .glass-sm {
-  background: oklch(0.98 0.004 265 / 0.88);
-  border-color: oklch(0.89 0.008 265 / 0.60);
+  background: oklch(0.98 0.004 265);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid oklch(0.89 0.008 265);
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.05);
 }
 
 .light .glass-hover:hover {
-  background: oklch(0.97 0.006 265 / 0.95);
-  border-color: oklch(0.78 0.015 265 / 0.80);
-  box-shadow: 0 8px 32px oklch(0 0 0 / 0.10), 0 0 0 1px oklch(0.52 0.24 268 / 0.12);
+  background: oklch(0.975 0.006 265);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: oklch(0.78 0.015 265);
+  box-shadow: 0 4px 16px oklch(0 0 0 / 0.08), 0 0 0 1px oklch(0.52 0.24 268 / 0.10);
+  transform: translateY(-1px);
 }
 
 .light .bento-card {
@@ -397,13 +406,11 @@
   box-shadow: 0 0 0 1px oklch(0.52 0.24 268 / 0.12), 0 16px 48px oklch(0 0 0 / 0.09);
 }
 
-.light .aurora-bg::before {
-  background: radial-gradient(ellipse, oklch(0.72 0.18 268 / 0.06) 0%, transparent 70%);
+/* ── Light mode: hide aurora entirely — it creates a blur fog over bright content ── */
+.light .aurora-bg {
+  display: none;
 }
 
-.light .aurora-bg::after {
-  background: radial-gradient(ellipse, oklch(0.75 0.16 310 / 0.04) 0%, transparent 70%);
-}
 
 .light .input-glow {
   background: oklch(0.99 0.003 265);
