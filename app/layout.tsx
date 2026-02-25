@@ -1,16 +1,15 @@
 import type { Metadata } from 'next';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: 'FinSentinel — Intelligent Finance Management',
-  description: 'AI-powered personal finance platform with voice entry, investment tracking, tax optimizer, family sharing, and beautiful real-time insights.',
-  keywords: 'finance, budget, expenses, income, investment tracker, tax optimizer, family budgeting, AI finance, money management, voice entry',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
+  description:
+    'AI-powered personal finance platform with voice entry, investment tracking, tax optimizer, family sharing, and beautiful real-time insights.',
+  keywords:
+    'finance, budget, expenses, income, investment tracker, tax optimizer, family budgeting, AI finance, money management, voice entry',
   icons: {
     icon: [
       { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
@@ -26,11 +25,11 @@ export const metadata: Metadata = {
   },
 };
 
-import { Toaster } from 'sonner';
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -39,25 +38,28 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           rel="stylesheet"
         />
       </head>
-      <body className="font-sans antialiased dark">
-        {children}
-        <Analytics />
-        <Toaster
-          position="top-right"
-          richColors
-          theme="dark"
-          toastOptions={{
-            style: {
-              background: 'oklch(0.14 0.016 265)',
-              border: '1px solid oklch(0.26 0.022 265)',
-              color: 'oklch(0.95 0.005 265)',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '13px',
-              borderRadius: '14px',
-              backdropFilter: 'blur(20px)',
-            },
-          }}
-        />
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange={false}
+        >
+          {children}
+          <Analytics />
+          <Toaster
+            position="top-right"
+            richColors
+            theme="system"
+            toastOptions={{
+              style: {
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '13px',
+                borderRadius: '14px',
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );

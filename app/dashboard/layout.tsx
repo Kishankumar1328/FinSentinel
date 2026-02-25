@@ -10,6 +10,7 @@ import {
   ChevronLeft, ChevronRight, Bell, Search,
 } from 'lucide-react';
 import { VoiceAssistant } from '@/components/voice-assistant';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const NAV_GROUPS = [
   {
@@ -257,10 +258,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             {/* Notifications */}
-            <button className="relative p-2.5 rounded-xl hover:bg-white/8 text-white/45 hover:text-white transition-colors">
+            <button className="relative p-2.5 rounded-xl hover:bg-white/8 text-white/45 hover:text-white transition-colors dark:hover:bg-white/8 light:hover:bg-black/5">
               <Bell className="h-4.5 w-4.5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500 border-2 border-background" />
             </button>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* Avatar */}
             <button className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center font-bold text-sm text-white shadow-md shadow-violet-500/30 hover:shadow-lg hover:shadow-violet-500/40 transition-shadow">
