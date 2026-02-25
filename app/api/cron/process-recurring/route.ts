@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         let processed = 0;
 
         // Fetch all active recurring transactions due today or earlier
-        const dueTransactions = db.prepare(`
+        const dueTransactions = await db.prepare(`
       SELECT * FROM recurring_transactions
       WHERE is_active = 1 AND next_date <= ?
     `).all(now) as any[];
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
             // Compute next run date
             const nextDate = computeNextDate(tx.next_date, tx.frequency);
-            db.prepare(`
+            await await db.prepare(`
         UPDATE recurring_transactions SET last_executed = ?, next_date = ?, updated_at = ? WHERE id = ?
       `).run(now, nextDate, now, tx.id);
 

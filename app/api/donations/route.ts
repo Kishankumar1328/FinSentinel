@@ -7,13 +7,13 @@ import { v4 as uuidv4 } from 'uuid';
 export async function GET(request: NextRequest) {
     try {
         await initializeDbAsync();
-        const user = getCurrentUser(request);
+        const user = await getCurrentUser(request);
         if (!user) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const db = getDb();
-        const donations = db.prepare('SELECT * FROM donations WHERE user_id = ? ORDER BY date DESC').all(user.id);
+        const donations = await db.prepare('SELECT * FROM donations WHERE user_id = ? ORDER BY date DESC').all(user.id);
 
         return NextResponse.json({
             success: true,
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         await initializeDbAsync();
-        const user = getCurrentUser(request);
+        const user = await getCurrentUser(request);
         if (!user) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }

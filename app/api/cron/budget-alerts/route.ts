@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
 
         // Get all budgets with user email
-        const budgets = db.prepare(`
+        const budgets = await db.prepare(`
       SELECT b.*, u.email, u.name
       FROM budgets b
       JOIN users u ON u.id = b.user_id

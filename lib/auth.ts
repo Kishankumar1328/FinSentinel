@@ -22,35 +22,27 @@ export function verifyToken(token: string): DecodedToken | null {
 }
 
 export function getTokenFromRequest(request: NextRequest): string | null {
-  // Try to get token from Authorization header
   const authHeader = request.headers.get('Authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.slice(7);
   }
-
-  // Try to get token from cookies
   const cookieToken = request.cookies.get('authToken');
   if (cookieToken) {
     return cookieToken.value;
   }
-
   return null;
 }
 
-export function getUserFromToken(token: string): UserProfile | null {
+export async function getUserFromToken(token: string): Promise<UserProfile | null> {
   const decoded = verifyToken(token);
-  if (!decoded) {
-    return null;
-  }
+  if (!decoded) return null;
 
   const db = getDb();
-  const user = db.prepare(`
-    SELECT id, email, name, currency, timezone FROM users WHERE id = ?
-  `).get(decoded.userId) as any;
+  const user = await db.prepare(
+    'SELECT id, email, name, currency, timezone FROM users WHERE id = ?'
+  ).get(decoded.userId) as any;
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return {
     id: user.id,
@@ -61,10 +53,22 @@ export function getUserFromToken(token: string): UserProfile | null {
   };
 }
 
+export async function getCurrentUser(request: NextRequest): Promise<UserProfile | null> {
+  const token = getTokenFromRequest(request);
+  if (!token) return null;
+  return getUserFromToken(token);
+}
+
+export async function verifyAuth(request: NextRequest): Promise<string | null> {
+  const token = getTokenFromRequest(request);
+  if (!token) return null;
+  const decoded = verifyToken(token);
+  return decoded ? decoded.userId : null;
+}
+
 export function requireAuth(handler: Function) {
   return async (request: NextRequest, ...args: any[]) => {
     const token = getTokenFromRequest(request);
-
     if (!token) {
       return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
         status: 401,
@@ -72,7 +76,7 @@ export function requireAuth(handler: Function) {
       });
     }
 
-    const user = getUserFromToken(token);
+    const user = await getUserFromToken(token);
     if (!user) {
       return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), {
         status: 401,
@@ -80,25 +84,7 @@ export function requireAuth(handler: Function) {
       });
     }
 
-    // Attach user to request
     (request as any).user = user;
-
     return handler(request, ...args);
   };
-}
-
-export async function verifyAuth(request: NextRequest): Promise<string | null> {
-  const token = getTokenFromRequest(request);
-  if (!token) return null;
-  
-  const decoded = verifyToken(token);
-  return decoded ? decoded.userId : null;
-}
-
-export function getCurrentUser(request: NextRequest): UserProfile | null {
-  const token = getTokenFromRequest(request);
-  if (!token) {
-    return null;
-  }
-  return getUserFromToken(token);
 }
