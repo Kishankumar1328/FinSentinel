@@ -1,10 +1,18 @@
-import { getDb, initializeDbAsync } from '@/lib/db';
+import { initializeDbAsync, executeQuery } from '@/lib/db';
 import { SignInSchema } from '@/lib/schemas';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
+import { RowDataPacket } from 'mysql2/promise';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
+
+interface UserRow extends RowDataPacket {
+  id: string;
+  email: string;
+  full_name: string;
+  password_hash: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,19 +31,24 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password } = validation.data;
-    const db = getDb();
 
     // Find user
-    const user = db.prepare('SELECT id, email, name, password_hash FROM users WHERE email = ?').get(email);
-    if (!user) {
+    const users = await executeQuery<UserRow[]>(
+      'SELECT id, email, full_name, password_hash FROM users WHERE email = ?',
+      [email]
+    );
+    
+    if (users.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Invalid credentials' },
         { status: 401 }
       );
     }
 
+    const user = users[0];
+
     // Verify password
-    const passwordMatch = await bcrypt.compare(password, user.password_hash as string);
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
     if (!passwordMatch) {
       return NextResponse.json(
         { success: false, error: 'Invalid credentials' },
@@ -52,7 +65,7 @@ export async function POST(request: NextRequest) {
         data: {
           userId: user.id,
           email: user.email,
-          name: user.name,
+          name: user.full_name,
           token,
         },
       },

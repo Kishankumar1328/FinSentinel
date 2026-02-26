@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { getCurrentUser } from '@/lib/auth';
-import { getDb, initializeDbAsync } from '@/lib/db';
+import { initializeDbAsync, executeQuery, executeInsert } from '@/lib/db';
 import { ExpenseSchema, ExpenseQuerySchema } from '@/lib/schemas';
+import { RowDataPacket } from 'mysql2/promise';
+
+interface ExpenseRow extends RowDataPacket {
+  id: string;
+  user_id: string;
+  category: string;
+  amount: number;
+  description: string | null;
+  date: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+interface CountRow extends RowDataPacket {
+  count: number;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,16 +42,19 @@ export async function POST(request: NextRequest) {
     }
 
     const { category, amount, description, date, payment_method, tags, mood, is_donation } = validation.data;
-    const db = getDb();
-    const now = Date.now();
+    const now = new Date();
     const expenseId = uuidv4();
 
-    db.prepare(`
-      INSERT INTO expenses (id, user_id, category, amount, description, date, payment_method, tags, mood, is_donation, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(expenseId, user.id, category, amount, description || null, date, payment_method, tags || null, mood || null, is_donation ? 1 : 0, now, now);
+    await executeInsert(
+      `
+      INSERT INTO expenses (id, user_id, category, amount, description, date, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+      [expenseId, user.id, category, amount, description || null, date, now, now]
+    );
 
-    const expense = db.prepare('SELECT * FROM expenses WHERE id = ?').get(expenseId);
+    const expenses = await executeQuery<ExpenseRow[]>('SELECT * FROM expenses WHERE id = ?', [expenseId]);
+    const expense = expenses[0];
 
     return NextResponse.json(
       {
@@ -82,19 +101,18 @@ export async function GET(request: NextRequest) {
     }
 
     const { startDate, endDate, category, page, limit } = validation.data;
-    const db = getDb();
 
     // Build query
     let query = 'SELECT * FROM expenses WHERE user_id = ?';
     const params: any[] = [user.id];
 
     if (startDate) {
-      query += ' AND date >= ?';
-      params.push(startDate);
+      query += ' AND date >= FROM_UNIXTIME(?)';
+      params.push(startDate / 1000);
     }
     if (endDate) {
-      query += ' AND date <= ?';
-      params.push(endDate);
+      query += ' AND date <= FROM_UNIXTIME(?)';
+      params.push(endDate / 1000);
     }
     if (category) {
       query += ' AND category = ?';
@@ -103,15 +121,15 @@ export async function GET(request: NextRequest) {
 
     // Get total count
     const countQuery = query.replace('SELECT *', 'SELECT COUNT(*) as count');
-    const countResult = db.prepare(countQuery).get(...params) as any;
-    const total = countResult.count;
+    const countResults = await executeQuery<CountRow[]>(countQuery, params);
+    const total = countResults[0].count;
 
     // Get paginated results
     const offset = (page - 1) * limit;
-    query += ' ORDER BY date DESC LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+    const paginatedQuery = query + ' ORDER BY date DESC LIMIT ? OFFSET ?';
+    const paginatedParams = [...params, limit, offset];
 
-    const expenses = db.prepare(query).all(...params);
+    const expenses = await executeQuery<ExpenseRow[]>(paginatedQuery, paginatedParams);
 
     return NextResponse.json({
       success: true,

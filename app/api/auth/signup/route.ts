@@ -1,11 +1,16 @@
-import { getDb, initializeDbAsync } from '@/lib/db';
+import { initializeDbAsync, executeQuery, executeInsert } from '@/lib/db';
 import { SignUpSchema } from '@/lib/schemas';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
+import { RowDataPacket } from 'mysql2/promise';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
+
+interface UserRow extends RowDataPacket {
+  id: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,11 +29,13 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password, name } = validation.data;
-    const db = getDb();
 
     // Check if user already exists
-    const existingUser = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-    if (existingUser) {
+    const existingUsers = await executeQuery<UserRow[]>(
+      'SELECT id FROM users WHERE email = ?',
+      [email]
+    );
+    if (existingUsers.length > 0) {
       return NextResponse.json(
         { success: false, error: 'Email already registered' },
         { status: 409 }
@@ -40,12 +47,15 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const userId = uuidv4();
-    const now = Date.now();
+    const now = new Date();
 
-    db.prepare(`
-      INSERT INTO users (id, email, password_hash, name, currency, timezone, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(userId, email, passwordHash, name, 'USD', 'UTC', now, now);
+    await executeInsert(
+      `
+      INSERT INTO users (id, email, password_hash, full_name, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `,
+      [userId, email, passwordHash, name, now, now]
+    );
 
     // Generate JWT token
     const token = jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: '7d' });
