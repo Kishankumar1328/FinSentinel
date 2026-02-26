@@ -64,7 +64,8 @@ class SyncDatabase {
 
   exec(sql: string) {
     try {
-      this.db.run(sql);
+      this.db.exec(sql);
+      saveDatabase();
     } catch (error) {
       console.error('[v0] Database error:', error);
       throw error;
@@ -337,9 +338,6 @@ function runMigrations() {
       sent_at INTEGER NOT NULL
     );
   `);
-
-  try { db.exec('ALTER TABLE expenses ADD COLUMN mood TEXT;'); } catch (e) { }
-  try { db.exec('ALTER TABLE expenses ADD COLUMN is_donation BOOLEAN DEFAULT 0;'); } catch (e) { }
 
   db.pragma('foreign_keys = ON');
   saveDatabase();
